@@ -42,6 +42,12 @@ const (
 )
 
 const (
+	BotJoinActionJOINONLY     = 1 // 仅加入已存在会议
+	BotJoinActionSTARTANDJOIN = 2 // 发起并加入日程会议；会议已存在时加入同一会议
+
+)
+
+const (
 	UserIdTypeUserActiveMeetingBotUserId  = "user_id"  // 以user_id来识别用户
 	UserIdTypeUserActiveMeetingBotUnionId = "union_id" // 以union_id来识别用户
 	UserIdTypeUserActiveMeetingBotOpenId  = "open_id"  // 以open_id来识别用户
@@ -1040,6 +1046,109 @@ func (builder *ChatMessageItemBuilder) Build() *ChatMessageItem {
 	return req
 }
 
+type ChatMessageItemQuery struct {
+	Operator *MeetingAgentEventUserQuery `json:"operator,omitempty"` // 发送者
+
+	MessageId *string `json:"message_id,omitempty"` // 消息 ID
+
+	MessageType *int `json:"message_type,omitempty"` // 消息类型
+
+	Content *string `json:"content,omitempty"` // 消息内容
+
+	SendTime *string `json:"send_time,omitempty"` // 发送时间（毫秒级时间戳）
+}
+
+type ChatMessageItemQueryBuilder struct {
+	operator    *MeetingAgentEventUserQuery // 发送者
+	operatorSet bool
+
+	messageId    string // 消息 ID
+	messageIdSet bool
+
+	messageType    int // 消息类型
+	messageTypeSet bool
+
+	content    string // 消息内容
+	contentSet bool
+
+	sendTime    string // 发送时间（毫秒级时间戳）
+	sendTimeSet bool
+}
+
+func NewChatMessageItemQueryBuilder() *ChatMessageItemQueryBuilder {
+	builder := &ChatMessageItemQueryBuilder{}
+	return builder
+}
+
+// 发送者
+//
+// 示例值：
+func (builder *ChatMessageItemQueryBuilder) Operator(operator *MeetingAgentEventUserQuery) *ChatMessageItemQueryBuilder {
+	builder.operator = operator
+	builder.operatorSet = true
+	return builder
+}
+
+// 消息 ID
+//
+// 示例值：m_1001
+func (builder *ChatMessageItemQueryBuilder) MessageId(messageId string) *ChatMessageItemQueryBuilder {
+	builder.messageId = messageId
+	builder.messageIdSet = true
+	return builder
+}
+
+// 消息类型
+//
+// 示例值：1
+func (builder *ChatMessageItemQueryBuilder) MessageType(messageType int) *ChatMessageItemQueryBuilder {
+	builder.messageType = messageType
+	builder.messageTypeSet = true
+	return builder
+}
+
+// 消息内容
+//
+// 示例值：你好
+func (builder *ChatMessageItemQueryBuilder) Content(content string) *ChatMessageItemQueryBuilder {
+	builder.content = content
+	builder.contentSet = true
+	return builder
+}
+
+// 发送时间（毫秒级时间戳）
+//
+// 示例值：1712345678000
+func (builder *ChatMessageItemQueryBuilder) SendTime(sendTime string) *ChatMessageItemQueryBuilder {
+	builder.sendTime = sendTime
+	builder.sendTimeSet = true
+	return builder
+}
+
+func (builder *ChatMessageItemQueryBuilder) Build() *ChatMessageItemQuery {
+	req := &ChatMessageItemQuery{}
+	if builder.operatorSet {
+		req.Operator = builder.operator
+	}
+	if builder.messageIdSet {
+		req.MessageId = &builder.messageId
+
+	}
+	if builder.messageTypeSet {
+		req.MessageType = &builder.messageType
+
+	}
+	if builder.contentSet {
+		req.Content = &builder.content
+
+	}
+	if builder.sendTimeSet {
+		req.SendTime = &builder.sendTime
+
+	}
+	return req
+}
+
 type CommentFocus struct {
 	CommentId *string `json:"comment_id,omitempty"` // 评论 ID
 
@@ -1184,6 +1293,354 @@ func (builder *ContactBuilder) Build() *Contact {
 	}
 	if builder.contactNameSet {
 		req.ContactName = &builder.contactName
+
+	}
+	return req
+}
+
+type CountdownItem struct {
+	Action *string `json:"action,omitempty"` // 倒计时动作；取值 SET / PROLONG / END_IN_ADVANCE / CLOSE / ENDED / REMIND
+
+	Operator *MeetingAgentEventUser `json:"operator,omitempty"` // 邀请人
+
+	EndTime *string `json:"end_time,omitempty"` // 倒计时结束时间（毫秒级时间戳）
+
+	EventTime *string `json:"event_time,omitempty"` // 倒计时事件发生时间（毫秒级时间戳）
+
+	NeedPlayAudioAtEnd *bool `json:"need_play_audio_at_end,omitempty"` // 倒计时结束时是否播放提示音
+
+	RemindersBeforeEndInSecond []int `json:"reminders_before_end_in_second,omitempty"` // 倒计时结束前提醒时间列表，单位为秒
+
+	SeqId *string `json:"seq_id,omitempty"` // 倒计时序列 ID
+
+	CountdownSetTime *string `json:"countdown_set_time,omitempty"` // 倒计时设置时间（毫秒级时间戳）
+
+	RemainMinutes *int `json:"remain_minutes,omitempty"` // 距离倒计时结束的剩余分钟数；仅 action 为 REMIND 时填充
+}
+
+type CountdownItemBuilder struct {
+	action    string // 倒计时动作；取值 SET / PROLONG / END_IN_ADVANCE / CLOSE / ENDED / REMIND
+	actionSet bool
+
+	operator    *MeetingAgentEventUser // 邀请人
+	operatorSet bool
+
+	endTime    string // 倒计时结束时间（毫秒级时间戳）
+	endTimeSet bool
+
+	eventTime    string // 倒计时事件发生时间（毫秒级时间戳）
+	eventTimeSet bool
+
+	needPlayAudioAtEnd    bool // 倒计时结束时是否播放提示音
+	needPlayAudioAtEndSet bool
+
+	remindersBeforeEndInSecond    []int // 倒计时结束前提醒时间列表，单位为秒
+	remindersBeforeEndInSecondSet bool
+
+	seqId    string // 倒计时序列 ID
+	seqIdSet bool
+
+	countdownSetTime    string // 倒计时设置时间（毫秒级时间戳）
+	countdownSetTimeSet bool
+
+	remainMinutes    int // 距离倒计时结束的剩余分钟数；仅 action 为 REMIND 时填充
+	remainMinutesSet bool
+}
+
+func NewCountdownItemBuilder() *CountdownItemBuilder {
+	builder := &CountdownItemBuilder{}
+	return builder
+}
+
+// 倒计时动作；取值 SET / PROLONG / END_IN_ADVANCE / CLOSE / ENDED / REMIND
+//
+// 示例值：SET
+func (builder *CountdownItemBuilder) Action(action string) *CountdownItemBuilder {
+	builder.action = action
+	builder.actionSet = true
+	return builder
+}
+
+// 邀请人
+//
+// 示例值：
+func (builder *CountdownItemBuilder) Operator(operator *MeetingAgentEventUser) *CountdownItemBuilder {
+	builder.operator = operator
+	builder.operatorSet = true
+	return builder
+}
+
+// 倒计时结束时间（毫秒级时间戳）
+//
+// 示例值：1712349200000
+func (builder *CountdownItemBuilder) EndTime(endTime string) *CountdownItemBuilder {
+	builder.endTime = endTime
+	builder.endTimeSet = true
+	return builder
+}
+
+// 倒计时事件发生时间（毫秒级时间戳）
+//
+// 示例值：1712348900000
+func (builder *CountdownItemBuilder) EventTime(eventTime string) *CountdownItemBuilder {
+	builder.eventTime = eventTime
+	builder.eventTimeSet = true
+	return builder
+}
+
+// 倒计时结束时是否播放提示音
+//
+// 示例值：true
+func (builder *CountdownItemBuilder) NeedPlayAudioAtEnd(needPlayAudioAtEnd bool) *CountdownItemBuilder {
+	builder.needPlayAudioAtEnd = needPlayAudioAtEnd
+	builder.needPlayAudioAtEndSet = true
+	return builder
+}
+
+// 倒计时结束前提醒时间列表，单位为秒
+//
+// 示例值：[60, 300]
+func (builder *CountdownItemBuilder) RemindersBeforeEndInSecond(remindersBeforeEndInSecond []int) *CountdownItemBuilder {
+	builder.remindersBeforeEndInSecond = remindersBeforeEndInSecond
+	builder.remindersBeforeEndInSecondSet = true
+	return builder
+}
+
+// 倒计时序列 ID
+//
+// 示例值：12345
+func (builder *CountdownItemBuilder) SeqId(seqId string) *CountdownItemBuilder {
+	builder.seqId = seqId
+	builder.seqIdSet = true
+	return builder
+}
+
+// 倒计时设置时间（毫秒级时间戳）
+//
+// 示例值：1712348600000
+func (builder *CountdownItemBuilder) CountdownSetTime(countdownSetTime string) *CountdownItemBuilder {
+	builder.countdownSetTime = countdownSetTime
+	builder.countdownSetTimeSet = true
+	return builder
+}
+
+// 距离倒计时结束的剩余分钟数；仅 action 为 REMIND 时填充
+//
+// 示例值：5
+func (builder *CountdownItemBuilder) RemainMinutes(remainMinutes int) *CountdownItemBuilder {
+	builder.remainMinutes = remainMinutes
+	builder.remainMinutesSet = true
+	return builder
+}
+
+func (builder *CountdownItemBuilder) Build() *CountdownItem {
+	req := &CountdownItem{}
+	if builder.actionSet {
+		req.Action = &builder.action
+
+	}
+	if builder.operatorSet {
+		req.Operator = builder.operator
+	}
+	if builder.endTimeSet {
+		req.EndTime = &builder.endTime
+
+	}
+	if builder.eventTimeSet {
+		req.EventTime = &builder.eventTime
+
+	}
+	if builder.needPlayAudioAtEndSet {
+		req.NeedPlayAudioAtEnd = &builder.needPlayAudioAtEnd
+
+	}
+	if builder.remindersBeforeEndInSecondSet {
+		req.RemindersBeforeEndInSecond = builder.remindersBeforeEndInSecond
+	}
+	if builder.seqIdSet {
+		req.SeqId = &builder.seqId
+
+	}
+	if builder.countdownSetTimeSet {
+		req.CountdownSetTime = &builder.countdownSetTime
+
+	}
+	if builder.remainMinutesSet {
+		req.RemainMinutes = &builder.remainMinutes
+
+	}
+	return req
+}
+
+type CountdownItemQuery struct {
+	Action *string `json:"action,omitempty"` // 倒计时动作；取值 SET / PROLONG / END_IN_ADVANCE / CLOSE / ENDED / REMIND
+
+	Operator *MeetingAgentEventUserQuery `json:"operator,omitempty"` // 操作倒计时的用户；action 为 ENDED / REMIND 时为空
+
+	EndTime *string `json:"end_time,omitempty"` // 倒计时结束时间（毫秒级时间戳）
+
+	EventTime *string `json:"event_time,omitempty"` // 倒计时事件发生时间（毫秒级时间戳）
+
+	NeedPlayAudioAtEnd *bool `json:"need_play_audio_at_end,omitempty"` // 倒计时结束时是否播放提示音
+
+	RemindersBeforeEndInSecond []int `json:"reminders_before_end_in_second,omitempty"` // 倒计时结束前提醒时间列表，单位为秒
+
+	SeqId *string `json:"seq_id,omitempty"` // 倒计时序列 ID
+
+	CountdownSetTime *string `json:"countdown_set_time,omitempty"` // 倒计时设置时间（毫秒级时间戳）
+
+	RemainMinutes *int `json:"remain_minutes,omitempty"` // 距离倒计时结束的剩余分钟数；仅 action 为 REMIND 时填充
+}
+
+type CountdownItemQueryBuilder struct {
+	action    string // 倒计时动作；取值 SET / PROLONG / END_IN_ADVANCE / CLOSE / ENDED / REMIND
+	actionSet bool
+
+	operator    *MeetingAgentEventUserQuery // 操作倒计时的用户；action 为 ENDED / REMIND 时为空
+	operatorSet bool
+
+	endTime    string // 倒计时结束时间（毫秒级时间戳）
+	endTimeSet bool
+
+	eventTime    string // 倒计时事件发生时间（毫秒级时间戳）
+	eventTimeSet bool
+
+	needPlayAudioAtEnd    bool // 倒计时结束时是否播放提示音
+	needPlayAudioAtEndSet bool
+
+	remindersBeforeEndInSecond    []int // 倒计时结束前提醒时间列表，单位为秒
+	remindersBeforeEndInSecondSet bool
+
+	seqId    string // 倒计时序列 ID
+	seqIdSet bool
+
+	countdownSetTime    string // 倒计时设置时间（毫秒级时间戳）
+	countdownSetTimeSet bool
+
+	remainMinutes    int // 距离倒计时结束的剩余分钟数；仅 action 为 REMIND 时填充
+	remainMinutesSet bool
+}
+
+func NewCountdownItemQueryBuilder() *CountdownItemQueryBuilder {
+	builder := &CountdownItemQueryBuilder{}
+	return builder
+}
+
+// 倒计时动作；取值 SET / PROLONG / END_IN_ADVANCE / CLOSE / ENDED / REMIND
+//
+// 示例值：SET
+func (builder *CountdownItemQueryBuilder) Action(action string) *CountdownItemQueryBuilder {
+	builder.action = action
+	builder.actionSet = true
+	return builder
+}
+
+// 操作倒计时的用户；action 为 ENDED / REMIND 时为空
+//
+// 示例值：
+func (builder *CountdownItemQueryBuilder) Operator(operator *MeetingAgentEventUserQuery) *CountdownItemQueryBuilder {
+	builder.operator = operator
+	builder.operatorSet = true
+	return builder
+}
+
+// 倒计时结束时间（毫秒级时间戳）
+//
+// 示例值：1712349200000
+func (builder *CountdownItemQueryBuilder) EndTime(endTime string) *CountdownItemQueryBuilder {
+	builder.endTime = endTime
+	builder.endTimeSet = true
+	return builder
+}
+
+// 倒计时事件发生时间（毫秒级时间戳）
+//
+// 示例值：1712348900000
+func (builder *CountdownItemQueryBuilder) EventTime(eventTime string) *CountdownItemQueryBuilder {
+	builder.eventTime = eventTime
+	builder.eventTimeSet = true
+	return builder
+}
+
+// 倒计时结束时是否播放提示音
+//
+// 示例值：true
+func (builder *CountdownItemQueryBuilder) NeedPlayAudioAtEnd(needPlayAudioAtEnd bool) *CountdownItemQueryBuilder {
+	builder.needPlayAudioAtEnd = needPlayAudioAtEnd
+	builder.needPlayAudioAtEndSet = true
+	return builder
+}
+
+// 倒计时结束前提醒时间列表，单位为秒
+//
+// 示例值：[60, 300]
+func (builder *CountdownItemQueryBuilder) RemindersBeforeEndInSecond(remindersBeforeEndInSecond []int) *CountdownItemQueryBuilder {
+	builder.remindersBeforeEndInSecond = remindersBeforeEndInSecond
+	builder.remindersBeforeEndInSecondSet = true
+	return builder
+}
+
+// 倒计时序列 ID
+//
+// 示例值：12345
+func (builder *CountdownItemQueryBuilder) SeqId(seqId string) *CountdownItemQueryBuilder {
+	builder.seqId = seqId
+	builder.seqIdSet = true
+	return builder
+}
+
+// 倒计时设置时间（毫秒级时间戳）
+//
+// 示例值：1712348600000
+func (builder *CountdownItemQueryBuilder) CountdownSetTime(countdownSetTime string) *CountdownItemQueryBuilder {
+	builder.countdownSetTime = countdownSetTime
+	builder.countdownSetTimeSet = true
+	return builder
+}
+
+// 距离倒计时结束的剩余分钟数；仅 action 为 REMIND 时填充
+//
+// 示例值：5
+func (builder *CountdownItemQueryBuilder) RemainMinutes(remainMinutes int) *CountdownItemQueryBuilder {
+	builder.remainMinutes = remainMinutes
+	builder.remainMinutesSet = true
+	return builder
+}
+
+func (builder *CountdownItemQueryBuilder) Build() *CountdownItemQuery {
+	req := &CountdownItemQuery{}
+	if builder.actionSet {
+		req.Action = &builder.action
+
+	}
+	if builder.operatorSet {
+		req.Operator = builder.operator
+	}
+	if builder.endTimeSet {
+		req.EndTime = &builder.endTime
+
+	}
+	if builder.eventTimeSet {
+		req.EventTime = &builder.eventTime
+
+	}
+	if builder.needPlayAudioAtEndSet {
+		req.NeedPlayAudioAtEnd = &builder.needPlayAudioAtEnd
+
+	}
+	if builder.remindersBeforeEndInSecondSet {
+		req.RemindersBeforeEndInSecond = builder.remindersBeforeEndInSecond
+	}
+	if builder.seqIdSet {
+		req.SeqId = &builder.seqId
+
+	}
+	if builder.countdownSetTimeSet {
+		req.CountdownSetTime = &builder.countdownSetTime
+
+	}
+	if builder.remainMinutesSet {
+		req.RemainMinutes = &builder.remainMinutes
 
 	}
 	return req
@@ -1624,6 +2081,141 @@ func (builder *DocumentContextChangedItemBuilder) Build() *DocumentContextChange
 	return req
 }
 
+type DocumentContextChangedItemQuery struct {
+	Operator *MeetingAgentEventUserQuery `json:"operator,omitempty"` // 触发文档上下文变化的操作人，无法识别时不返回
+
+	ShareId *string `json:"share_id,omitempty"` // 共享会话 ID
+
+	ShareDoc *ShareDoc `json:"share_doc,omitempty"` // 当前共享文档信息
+
+	Time *string `json:"time,omitempty"` // 事件发生时间，十进制毫秒级时间戳字符串
+
+	CommentFocus *CommentFocus `json:"comment_focus,omitempty"` // 评论聚焦变化，仅评论聚焦或取消聚焦时返回
+
+	SectionLocation *SectionLocation `json:"section_location,omitempty"` // 章节位置变化，仅章节定位变化时返回
+
+	ElementPreview *ElementPreview `json:"element_preview,omitempty"` // 元素预览变化，仅图片或白板预览变化时返回
+}
+
+type DocumentContextChangedItemQueryBuilder struct {
+	operator    *MeetingAgentEventUserQuery // 触发文档上下文变化的操作人，无法识别时不返回
+	operatorSet bool
+
+	shareId    string // 共享会话 ID
+	shareIdSet bool
+
+	shareDoc    *ShareDoc // 当前共享文档信息
+	shareDocSet bool
+
+	time    string // 事件发生时间，十进制毫秒级时间戳字符串
+	timeSet bool
+
+	commentFocus    *CommentFocus // 评论聚焦变化，仅评论聚焦或取消聚焦时返回
+	commentFocusSet bool
+
+	sectionLocation    *SectionLocation // 章节位置变化，仅章节定位变化时返回
+	sectionLocationSet bool
+
+	elementPreview    *ElementPreview // 元素预览变化，仅图片或白板预览变化时返回
+	elementPreviewSet bool
+}
+
+func NewDocumentContextChangedItemQueryBuilder() *DocumentContextChangedItemQueryBuilder {
+	builder := &DocumentContextChangedItemQueryBuilder{}
+	return builder
+}
+
+// 触发文档上下文变化的操作人，无法识别时不返回
+//
+// 示例值：
+func (builder *DocumentContextChangedItemQueryBuilder) Operator(operator *MeetingAgentEventUserQuery) *DocumentContextChangedItemQueryBuilder {
+	builder.operator = operator
+	builder.operatorSet = true
+	return builder
+}
+
+// 共享会话 ID
+//
+// 示例值：7359880116
+func (builder *DocumentContextChangedItemQueryBuilder) ShareId(shareId string) *DocumentContextChangedItemQueryBuilder {
+	builder.shareId = shareId
+	builder.shareIdSet = true
+	return builder
+}
+
+// 当前共享文档信息
+//
+// 示例值：
+func (builder *DocumentContextChangedItemQueryBuilder) ShareDoc(shareDoc *ShareDoc) *DocumentContextChangedItemQueryBuilder {
+	builder.shareDoc = shareDoc
+	builder.shareDocSet = true
+	return builder
+}
+
+// 事件发生时间，十进制毫秒级时间戳字符串
+//
+// 示例值：1717171234567
+func (builder *DocumentContextChangedItemQueryBuilder) Time(time string) *DocumentContextChangedItemQueryBuilder {
+	builder.time = time
+	builder.timeSet = true
+	return builder
+}
+
+// 评论聚焦变化，仅评论聚焦或取消聚焦时返回
+//
+// 示例值：
+func (builder *DocumentContextChangedItemQueryBuilder) CommentFocus(commentFocus *CommentFocus) *DocumentContextChangedItemQueryBuilder {
+	builder.commentFocus = commentFocus
+	builder.commentFocusSet = true
+	return builder
+}
+
+// 章节位置变化，仅章节定位变化时返回
+//
+// 示例值：
+func (builder *DocumentContextChangedItemQueryBuilder) SectionLocation(sectionLocation *SectionLocation) *DocumentContextChangedItemQueryBuilder {
+	builder.sectionLocation = sectionLocation
+	builder.sectionLocationSet = true
+	return builder
+}
+
+// 元素预览变化，仅图片或白板预览变化时返回
+//
+// 示例值：
+func (builder *DocumentContextChangedItemQueryBuilder) ElementPreview(elementPreview *ElementPreview) *DocumentContextChangedItemQueryBuilder {
+	builder.elementPreview = elementPreview
+	builder.elementPreviewSet = true
+	return builder
+}
+
+func (builder *DocumentContextChangedItemQueryBuilder) Build() *DocumentContextChangedItemQuery {
+	req := &DocumentContextChangedItemQuery{}
+	if builder.operatorSet {
+		req.Operator = builder.operator
+	}
+	if builder.shareIdSet {
+		req.ShareId = &builder.shareId
+
+	}
+	if builder.shareDocSet {
+		req.ShareDoc = builder.shareDoc
+	}
+	if builder.timeSet {
+		req.Time = &builder.time
+
+	}
+	if builder.commentFocusSet {
+		req.CommentFocus = builder.commentFocus
+	}
+	if builder.sectionLocationSet {
+		req.SectionLocation = builder.sectionLocation
+	}
+	if builder.elementPreviewSet {
+		req.ElementPreview = builder.elementPreview
+	}
+	return req
+}
+
 type ElementPreview struct {
 	Action *string `json:"action,omitempty"` // 元素预览动作
 
@@ -1717,7 +2309,7 @@ type Event struct {
 
 	EventTime *string `json:"event_time,omitempty"` // 事件发生时间，RFC 3339 格式的日期时间字符串，例如 2024-05-20T14:30:00+08:00。
 
-	Payload *MeetingActivityItem `json:"payload,omitempty"` // 事件负载，包含与事件类型对应的业务数据，采用 JSON 格式序列化后的字符串
+	Payload *MeetingActivityItemQuery `json:"payload,omitempty"` // 事件负载，包含与事件类型对应的业务数据，采用 JSON 格式序列化后的字符串
 }
 
 type EventBuilder struct {
@@ -1730,7 +2322,7 @@ type EventBuilder struct {
 	eventTime    string // 事件发生时间，RFC 3339 格式的日期时间字符串，例如 2024-05-20T14:30:00+08:00。
 	eventTimeSet bool
 
-	payload    *MeetingActivityItem // 事件负载，包含与事件类型对应的业务数据，采用 JSON 格式序列化后的字符串
+	payload    *MeetingActivityItemQuery // 事件负载，包含与事件类型对应的业务数据，采用 JSON 格式序列化后的字符串
 	payloadSet bool
 }
 
@@ -1769,7 +2361,7 @@ func (builder *EventBuilder) EventTime(eventTime string) *EventBuilder {
 // 事件负载，包含与事件类型对应的业务数据，采用 JSON 格式序列化后的字符串
 //
 // 示例值：
-func (builder *EventBuilder) Payload(payload *MeetingActivityItem) *EventBuilder {
+func (builder *EventBuilder) Payload(payload *MeetingActivityItemQuery) *EventBuilder {
 	builder.payload = payload
 	builder.payloadSet = true
 	return builder
@@ -1861,7 +2453,7 @@ func NewJoinIdentifyBuilder() *JoinIdentifyBuilder {
 
 // 会议号，用于定位需加入的目标会议。可通过会议创建接口或会议列表查询接口获取。
 //
-// 示例值：MTG202405201030001
+// 示例值：123456789
 func (builder *JoinIdentifyBuilder) MeetingNo(meetingNo string) *JoinIdentifyBuilder {
 	builder.meetingNo = meetingNo
 	builder.meetingNoSet = true
@@ -2075,6 +2667,73 @@ func (builder *MagicShareEndedItemBuilder) Build() *MagicShareEndedItem {
 	return req
 }
 
+type MagicShareEndedItemQuery struct {
+	Operator *MeetingAgentEventUserQuery `json:"operator,omitempty"` // 结束妙享的操作者
+
+	ShareId *string `json:"share_id,omitempty"` // 共享会话 ID
+
+	Time *string `json:"time,omitempty"` // 妙享结束时间（毫秒级时间戳）
+}
+
+type MagicShareEndedItemQueryBuilder struct {
+	operator    *MeetingAgentEventUserQuery // 结束妙享的操作者
+	operatorSet bool
+
+	shareId    string // 共享会话 ID
+	shareIdSet bool
+
+	time    string // 妙享结束时间（毫秒级时间戳）
+	timeSet bool
+}
+
+func NewMagicShareEndedItemQueryBuilder() *MagicShareEndedItemQueryBuilder {
+	builder := &MagicShareEndedItemQueryBuilder{}
+	return builder
+}
+
+// 结束妙享的操作者
+//
+// 示例值：
+func (builder *MagicShareEndedItemQueryBuilder) Operator(operator *MeetingAgentEventUserQuery) *MagicShareEndedItemQueryBuilder {
+	builder.operator = operator
+	builder.operatorSet = true
+	return builder
+}
+
+// 共享会话 ID
+//
+// 示例值：share_abc_123
+func (builder *MagicShareEndedItemQueryBuilder) ShareId(shareId string) *MagicShareEndedItemQueryBuilder {
+	builder.shareId = shareId
+	builder.shareIdSet = true
+	return builder
+}
+
+// 妙享结束时间（毫秒级时间戳）
+//
+// 示例值：1712349200000
+func (builder *MagicShareEndedItemQueryBuilder) Time(time string) *MagicShareEndedItemQueryBuilder {
+	builder.time = time
+	builder.timeSet = true
+	return builder
+}
+
+func (builder *MagicShareEndedItemQueryBuilder) Build() *MagicShareEndedItemQuery {
+	req := &MagicShareEndedItemQuery{}
+	if builder.operatorSet {
+		req.Operator = builder.operator
+	}
+	if builder.shareIdSet {
+		req.ShareId = &builder.shareId
+
+	}
+	if builder.timeSet {
+		req.Time = &builder.time
+
+	}
+	return req
+}
+
 type MagicShareStartedItem struct {
 	Operator *MeetingAgentEventUser `json:"operator,omitempty"` // 邀请人
 
@@ -2083,6 +2742,8 @@ type MagicShareStartedItem struct {
 	ShareDoc *ShareDoc `json:"share_doc,omitempty"` // 共享文档信息
 
 	Time *string `json:"time,omitempty"` // 妙享开始时间（毫秒级时间戳）
+
+	StartReason *string `json:"start_reason,omitempty"` // 共享开始原因。share_started 表示真实共享开始；share_detected 表示开启 Agent 入会能力时发现已有共享。字段缺失按 share_started 处理。
 }
 
 type MagicShareStartedItemBuilder struct {
@@ -2097,6 +2758,9 @@ type MagicShareStartedItemBuilder struct {
 
 	time    string // 妙享开始时间（毫秒级时间戳）
 	timeSet bool
+
+	startReason    string // 共享开始原因。share_started 表示真实共享开始；share_detected 表示开启 Agent 入会能力时发现已有共享。字段缺失按 share_started 处理。
+	startReasonSet bool
 }
 
 func NewMagicShareStartedItemBuilder() *MagicShareStartedItemBuilder {
@@ -2140,6 +2804,15 @@ func (builder *MagicShareStartedItemBuilder) Time(time string) *MagicShareStarte
 	return builder
 }
 
+// 共享开始原因。share_started 表示真实共享开始；share_detected 表示开启 Agent 入会能力时发现已有共享。字段缺失按 share_started 处理。
+//
+// 示例值：share_started
+func (builder *MagicShareStartedItemBuilder) StartReason(startReason string) *MagicShareStartedItemBuilder {
+	builder.startReason = startReason
+	builder.startReasonSet = true
+	return builder
+}
+
 func (builder *MagicShareStartedItemBuilder) Build() *MagicShareStartedItem {
 	req := &MagicShareStartedItem{}
 	if builder.operatorSet {
@@ -2154,6 +2827,112 @@ func (builder *MagicShareStartedItemBuilder) Build() *MagicShareStartedItem {
 	}
 	if builder.timeSet {
 		req.Time = &builder.time
+
+	}
+	if builder.startReasonSet {
+		req.StartReason = &builder.startReason
+
+	}
+	return req
+}
+
+type MagicShareStartedItemQuery struct {
+	Operator *MeetingAgentEventUserQuery `json:"operator,omitempty"` // 发起妙享的操作者
+
+	ShareId *string `json:"share_id,omitempty"` // 共享会话 ID
+
+	ShareDoc *ShareDoc `json:"share_doc,omitempty"` // 共享文档信息
+
+	Time *string `json:"time,omitempty"` // 妙享开始时间（毫秒级时间戳）
+
+	StartReason *string `json:"start_reason,omitempty"` // 共享开始原因。share_started 表示真实共享开始；share_detected 表示开启 Agent 入会能力时发现已有共享。字段缺失按 share_started 处理。
+}
+
+type MagicShareStartedItemQueryBuilder struct {
+	operator    *MeetingAgentEventUserQuery // 发起妙享的操作者
+	operatorSet bool
+
+	shareId    string // 共享会话 ID
+	shareIdSet bool
+
+	shareDoc    *ShareDoc // 共享文档信息
+	shareDocSet bool
+
+	time    string // 妙享开始时间（毫秒级时间戳）
+	timeSet bool
+
+	startReason    string // 共享开始原因。share_started 表示真实共享开始；share_detected 表示开启 Agent 入会能力时发现已有共享。字段缺失按 share_started 处理。
+	startReasonSet bool
+}
+
+func NewMagicShareStartedItemQueryBuilder() *MagicShareStartedItemQueryBuilder {
+	builder := &MagicShareStartedItemQueryBuilder{}
+	return builder
+}
+
+// 发起妙享的操作者
+//
+// 示例值：
+func (builder *MagicShareStartedItemQueryBuilder) Operator(operator *MeetingAgentEventUserQuery) *MagicShareStartedItemQueryBuilder {
+	builder.operator = operator
+	builder.operatorSet = true
+	return builder
+}
+
+// 共享会话 ID
+//
+// 示例值：share_abc_123
+func (builder *MagicShareStartedItemQueryBuilder) ShareId(shareId string) *MagicShareStartedItemQueryBuilder {
+	builder.shareId = shareId
+	builder.shareIdSet = true
+	return builder
+}
+
+// 共享文档信息
+//
+// 示例值：
+func (builder *MagicShareStartedItemQueryBuilder) ShareDoc(shareDoc *ShareDoc) *MagicShareStartedItemQueryBuilder {
+	builder.shareDoc = shareDoc
+	builder.shareDocSet = true
+	return builder
+}
+
+// 妙享开始时间（毫秒级时间戳）
+//
+// 示例值：1712345678000
+func (builder *MagicShareStartedItemQueryBuilder) Time(time string) *MagicShareStartedItemQueryBuilder {
+	builder.time = time
+	builder.timeSet = true
+	return builder
+}
+
+// 共享开始原因。share_started 表示真实共享开始；share_detected 表示开启 Agent 入会能力时发现已有共享。字段缺失按 share_started 处理。
+//
+// 示例值：share_started
+func (builder *MagicShareStartedItemQueryBuilder) StartReason(startReason string) *MagicShareStartedItemQueryBuilder {
+	builder.startReason = startReason
+	builder.startReasonSet = true
+	return builder
+}
+
+func (builder *MagicShareStartedItemQueryBuilder) Build() *MagicShareStartedItemQuery {
+	req := &MagicShareStartedItemQuery{}
+	if builder.operatorSet {
+		req.Operator = builder.operator
+	}
+	if builder.shareIdSet {
+		req.ShareId = &builder.shareId
+
+	}
+	if builder.shareDocSet {
+		req.ShareDoc = builder.shareDoc
+	}
+	if builder.timeSet {
+		req.Time = &builder.time
+
+	}
+	if builder.startReasonSet {
+		req.StartReason = &builder.startReason
 
 	}
 	return req
@@ -2481,6 +3260,10 @@ type Meeting struct {
 	Ability *MeetingAbility `json:"ability,omitempty"` // 会中使用的能力
 
 	NoteId *string `json:"note_id,omitempty"` // 纪要ID
+
+	AppLink *string `json:"app_link,omitempty"` // 会议详情页链接
+
+	CalendarEventId *string `json:"calendar_event_id,omitempty"` // 日程id
 }
 
 type MeetingBuilder struct {
@@ -2531,6 +3314,12 @@ type MeetingBuilder struct {
 
 	noteId    string // 纪要ID
 	noteIdSet bool
+
+	appLink    string // 会议详情页链接
+	appLinkSet bool
+
+	calendarEventId    string // 日程id
+	calendarEventIdSet bool
 }
 
 func NewMeetingBuilder() *MeetingBuilder {
@@ -2682,6 +3471,24 @@ func (builder *MeetingBuilder) NoteId(noteId string) *MeetingBuilder {
 	return builder
 }
 
+// 会议详情页链接
+//
+// 示例值：https://applink.feishu.cn/client/vctab/open?source=chat&action=detail&meetingId=1000000000000001
+func (builder *MeetingBuilder) AppLink(appLink string) *MeetingBuilder {
+	builder.appLink = appLink
+	builder.appLinkSet = true
+	return builder
+}
+
+// 日程id
+//
+// 示例值：4dcb34cd-dbde-4fg7-a7b2-6c8dd3ca559_0
+func (builder *MeetingBuilder) CalendarEventId(calendarEventId string) *MeetingBuilder {
+	builder.calendarEventId = calendarEventId
+	builder.calendarEventIdSet = true
+	return builder
+}
+
 func (builder *MeetingBuilder) Build() *Meeting {
 	req := &Meeting{}
 	if builder.idSet {
@@ -2743,6 +3550,14 @@ func (builder *MeetingBuilder) Build() *Meeting {
 	}
 	if builder.noteIdSet {
 		req.NoteId = &builder.noteId
+
+	}
+	if builder.appLinkSet {
+		req.AppLink = &builder.appLink
+
+	}
+	if builder.calendarEventIdSet {
+		req.CalendarEventId = &builder.calendarEventId
 
 	}
 	return req
@@ -2974,6 +3789,8 @@ type MeetingActivityItem struct {
 	MagicShareEndedItems []*MagicShareEndedItem `json:"magic_share_ended_items,omitempty"` // 妙享结束内容（activity_event_type = magic_share_ended 时填充）
 
 	DocumentContextChangedItems []*DocumentContextChangedItem `json:"document_context_changed_items,omitempty"` // 文档上下文变化内容（activity_event_type = document_context_changed 时返回），单条记录包含评论聚焦、章节定位或元素预览中的一种变化
+
+	CountdownItems []*CountdownItem `json:"countdown_items,omitempty"` // 倒计时状态变化内容（activity_event_type = countdown_changed 时填充）
 }
 
 type MeetingActivityItemBuilder struct {
@@ -3003,6 +3820,9 @@ type MeetingActivityItemBuilder struct {
 
 	documentContextChangedItems    []*DocumentContextChangedItem // 文档上下文变化内容（activity_event_type = document_context_changed 时返回），单条记录包含评论聚焦、章节定位或元素预览中的一种变化
 	documentContextChangedItemsSet bool
+
+	countdownItems    []*CountdownItem // 倒计时状态变化内容（activity_event_type = countdown_changed 时填充）
+	countdownItemsSet bool
 }
 
 func NewMeetingActivityItemBuilder() *MeetingActivityItemBuilder {
@@ -3091,6 +3911,15 @@ func (builder *MeetingActivityItemBuilder) DocumentContextChangedItems(documentC
 	return builder
 }
 
+// 倒计时状态变化内容（activity_event_type = countdown_changed 时填充）
+//
+// 示例值：
+func (builder *MeetingActivityItemBuilder) CountdownItems(countdownItems []*CountdownItem) *MeetingActivityItemBuilder {
+	builder.countdownItems = countdownItems
+	builder.countdownItemsSet = true
+	return builder
+}
+
 func (builder *MeetingActivityItemBuilder) Build() *MeetingActivityItem {
 	req := &MeetingActivityItem{}
 	if builder.meetingSet {
@@ -3120,6 +3949,194 @@ func (builder *MeetingActivityItemBuilder) Build() *MeetingActivityItem {
 	}
 	if builder.documentContextChangedItemsSet {
 		req.DocumentContextChangedItems = builder.documentContextChangedItems
+	}
+	if builder.countdownItemsSet {
+		req.CountdownItems = builder.countdownItems
+	}
+	return req
+}
+
+type MeetingActivityItemQuery struct {
+	Meeting *MeetingAgentEventMeetingQuery `json:"meeting,omitempty"` // 会议数据
+
+	ActivityEventType *string `json:"activity_event_type,omitempty"` // 会中活动子类型；取值 participant_joined / participant_left / transcript_received / chat_received / magic_share_started / magic_share_ended / document_context_changed / countdown_changed
+
+	ParticipantJoinedItems []*ParticipantJoinedItemQuery `json:"participant_joined_items,omitempty"` // 参会人入会内容（activity_event_type = participant_joined 时填充）
+
+	ParticipantLeftItems []*ParticipantLeftItemQuery `json:"participant_left_items,omitempty"` // 参会人离会内容（activity_event_type = participant_left 时填充）
+
+	TranscriptReceivedItems []*TranscriptItemQuery `json:"transcript_received_items,omitempty"` // 字幕内容（activity_event_type = transcript_received 时填充）
+
+	ChatReceivedItems []*ChatMessageItemQuery `json:"chat_received_items,omitempty"` // 聊天消息内容（activity_event_type = chat_received 时填充）
+
+	MagicShareStartedItems []*MagicShareStartedItemQuery `json:"magic_share_started_items,omitempty"` // 妙享开始内容（activity_event_type = magic_share_started 时填充）
+
+	MagicShareEndedItems []*MagicShareEndedItemQuery `json:"magic_share_ended_items,omitempty"` // 妙享结束内容（activity_event_type = magic_share_ended 时填充）
+
+	DocumentContextChangedItems []*DocumentContextChangedItemQuery `json:"document_context_changed_items,omitempty"` // 文档上下文变化内容（activity_event_type = document_context_changed 时返回），单条记录包含评论聚焦、章节定位或元素预览中的一种变化
+
+	CountdownItems []*CountdownItemQuery `json:"countdown_items,omitempty"` // 倒计时状态变化内容（activity_event_type = countdown_changed 时填充）
+}
+
+type MeetingActivityItemQueryBuilder struct {
+	meeting    *MeetingAgentEventMeetingQuery // 会议数据
+	meetingSet bool
+
+	activityEventType    string // 会中活动子类型；取值 participant_joined / participant_left / transcript_received / chat_received / magic_share_started / magic_share_ended / document_context_changed / countdown_changed
+	activityEventTypeSet bool
+
+	participantJoinedItems    []*ParticipantJoinedItemQuery // 参会人入会内容（activity_event_type = participant_joined 时填充）
+	participantJoinedItemsSet bool
+
+	participantLeftItems    []*ParticipantLeftItemQuery // 参会人离会内容（activity_event_type = participant_left 时填充）
+	participantLeftItemsSet bool
+
+	transcriptReceivedItems    []*TranscriptItemQuery // 字幕内容（activity_event_type = transcript_received 时填充）
+	transcriptReceivedItemsSet bool
+
+	chatReceivedItems    []*ChatMessageItemQuery // 聊天消息内容（activity_event_type = chat_received 时填充）
+	chatReceivedItemsSet bool
+
+	magicShareStartedItems    []*MagicShareStartedItemQuery // 妙享开始内容（activity_event_type = magic_share_started 时填充）
+	magicShareStartedItemsSet bool
+
+	magicShareEndedItems    []*MagicShareEndedItemQuery // 妙享结束内容（activity_event_type = magic_share_ended 时填充）
+	magicShareEndedItemsSet bool
+
+	documentContextChangedItems    []*DocumentContextChangedItemQuery // 文档上下文变化内容（activity_event_type = document_context_changed 时返回），单条记录包含评论聚焦、章节定位或元素预览中的一种变化
+	documentContextChangedItemsSet bool
+
+	countdownItems    []*CountdownItemQuery // 倒计时状态变化内容（activity_event_type = countdown_changed 时填充）
+	countdownItemsSet bool
+}
+
+func NewMeetingActivityItemQueryBuilder() *MeetingActivityItemQueryBuilder {
+	builder := &MeetingActivityItemQueryBuilder{}
+	return builder
+}
+
+// 会议数据
+//
+// 示例值：
+func (builder *MeetingActivityItemQueryBuilder) Meeting(meeting *MeetingAgentEventMeetingQuery) *MeetingActivityItemQueryBuilder {
+	builder.meeting = meeting
+	builder.meetingSet = true
+	return builder
+}
+
+// 会中活动子类型；取值 participant_joined / participant_left / transcript_received / chat_received / magic_share_started / magic_share_ended / document_context_changed / countdown_changed
+//
+// 示例值：participant_joined
+func (builder *MeetingActivityItemQueryBuilder) ActivityEventType(activityEventType string) *MeetingActivityItemQueryBuilder {
+	builder.activityEventType = activityEventType
+	builder.activityEventTypeSet = true
+	return builder
+}
+
+// 参会人入会内容（activity_event_type = participant_joined 时填充）
+//
+// 示例值：
+func (builder *MeetingActivityItemQueryBuilder) ParticipantJoinedItems(participantJoinedItems []*ParticipantJoinedItemQuery) *MeetingActivityItemQueryBuilder {
+	builder.participantJoinedItems = participantJoinedItems
+	builder.participantJoinedItemsSet = true
+	return builder
+}
+
+// 参会人离会内容（activity_event_type = participant_left 时填充）
+//
+// 示例值：
+func (builder *MeetingActivityItemQueryBuilder) ParticipantLeftItems(participantLeftItems []*ParticipantLeftItemQuery) *MeetingActivityItemQueryBuilder {
+	builder.participantLeftItems = participantLeftItems
+	builder.participantLeftItemsSet = true
+	return builder
+}
+
+// 字幕内容（activity_event_type = transcript_received 时填充）
+//
+// 示例值：
+func (builder *MeetingActivityItemQueryBuilder) TranscriptReceivedItems(transcriptReceivedItems []*TranscriptItemQuery) *MeetingActivityItemQueryBuilder {
+	builder.transcriptReceivedItems = transcriptReceivedItems
+	builder.transcriptReceivedItemsSet = true
+	return builder
+}
+
+// 聊天消息内容（activity_event_type = chat_received 时填充）
+//
+// 示例值：
+func (builder *MeetingActivityItemQueryBuilder) ChatReceivedItems(chatReceivedItems []*ChatMessageItemQuery) *MeetingActivityItemQueryBuilder {
+	builder.chatReceivedItems = chatReceivedItems
+	builder.chatReceivedItemsSet = true
+	return builder
+}
+
+// 妙享开始内容（activity_event_type = magic_share_started 时填充）
+//
+// 示例值：
+func (builder *MeetingActivityItemQueryBuilder) MagicShareStartedItems(magicShareStartedItems []*MagicShareStartedItemQuery) *MeetingActivityItemQueryBuilder {
+	builder.magicShareStartedItems = magicShareStartedItems
+	builder.magicShareStartedItemsSet = true
+	return builder
+}
+
+// 妙享结束内容（activity_event_type = magic_share_ended 时填充）
+//
+// 示例值：
+func (builder *MeetingActivityItemQueryBuilder) MagicShareEndedItems(magicShareEndedItems []*MagicShareEndedItemQuery) *MeetingActivityItemQueryBuilder {
+	builder.magicShareEndedItems = magicShareEndedItems
+	builder.magicShareEndedItemsSet = true
+	return builder
+}
+
+// 文档上下文变化内容（activity_event_type = document_context_changed 时返回），单条记录包含评论聚焦、章节定位或元素预览中的一种变化
+//
+// 示例值：
+func (builder *MeetingActivityItemQueryBuilder) DocumentContextChangedItems(documentContextChangedItems []*DocumentContextChangedItemQuery) *MeetingActivityItemQueryBuilder {
+	builder.documentContextChangedItems = documentContextChangedItems
+	builder.documentContextChangedItemsSet = true
+	return builder
+}
+
+// 倒计时状态变化内容（activity_event_type = countdown_changed 时填充）
+//
+// 示例值：
+func (builder *MeetingActivityItemQueryBuilder) CountdownItems(countdownItems []*CountdownItemQuery) *MeetingActivityItemQueryBuilder {
+	builder.countdownItems = countdownItems
+	builder.countdownItemsSet = true
+	return builder
+}
+
+func (builder *MeetingActivityItemQueryBuilder) Build() *MeetingActivityItemQuery {
+	req := &MeetingActivityItemQuery{}
+	if builder.meetingSet {
+		req.Meeting = builder.meeting
+	}
+	if builder.activityEventTypeSet {
+		req.ActivityEventType = &builder.activityEventType
+
+	}
+	if builder.participantJoinedItemsSet {
+		req.ParticipantJoinedItems = builder.participantJoinedItems
+	}
+	if builder.participantLeftItemsSet {
+		req.ParticipantLeftItems = builder.participantLeftItems
+	}
+	if builder.transcriptReceivedItemsSet {
+		req.TranscriptReceivedItems = builder.transcriptReceivedItems
+	}
+	if builder.chatReceivedItemsSet {
+		req.ChatReceivedItems = builder.chatReceivedItems
+	}
+	if builder.magicShareStartedItemsSet {
+		req.MagicShareStartedItems = builder.magicShareStartedItems
+	}
+	if builder.magicShareEndedItemsSet {
+		req.MagicShareEndedItems = builder.magicShareEndedItems
+	}
+	if builder.documentContextChangedItemsSet {
+		req.DocumentContextChangedItems = builder.documentContextChangedItems
+	}
+	if builder.countdownItemsSet {
+		req.CountdownItems = builder.countdownItems
 	}
 	return req
 }
@@ -3245,8 +4262,129 @@ func (builder *MeetingAgentEventMeetingBuilder) Build() *MeetingAgentEventMeetin
 	return req
 }
 
+type MeetingAgentEventMeetingQuery struct {
+	Id *string `json:"id,omitempty"` // 会议ID
+
+	Topic *string `json:"topic,omitempty"` // 会议主题
+
+	MeetingNo *string `json:"meeting_no,omitempty"` // 9位会议号
+
+	StartTime *string `json:"start_time,omitempty"` // 会议开始时间（unix时间，单位sec）
+
+	EndTime *string `json:"end_time,omitempty"` // 会议结束时间（unix时间，单位sec）
+
+	HostUser *MeetingAgentEventUserQuery `json:"host_user,omitempty"` // 会议主持人
+}
+
+type MeetingAgentEventMeetingQueryBuilder struct {
+	id    string // 会议ID
+	idSet bool
+
+	topic    string // 会议主题
+	topicSet bool
+
+	meetingNo    string // 9位会议号
+	meetingNoSet bool
+
+	startTime    string // 会议开始时间（unix时间，单位sec）
+	startTimeSet bool
+
+	endTime    string // 会议结束时间（unix时间，单位sec）
+	endTimeSet bool
+
+	hostUser    *MeetingAgentEventUserQuery // 会议主持人
+	hostUserSet bool
+}
+
+func NewMeetingAgentEventMeetingQueryBuilder() *MeetingAgentEventMeetingQueryBuilder {
+	builder := &MeetingAgentEventMeetingQueryBuilder{}
+	return builder
+}
+
+// 会议ID
+//
+// 示例值：7628148899983674909
+func (builder *MeetingAgentEventMeetingQueryBuilder) Id(id string) *MeetingAgentEventMeetingQueryBuilder {
+	builder.id = id
+	builder.idSet = true
+	return builder
+}
+
+// 会议主题
+//
+// 示例值：周会
+func (builder *MeetingAgentEventMeetingQueryBuilder) Topic(topic string) *MeetingAgentEventMeetingQueryBuilder {
+	builder.topic = topic
+	builder.topicSet = true
+	return builder
+}
+
+// 9位会议号
+//
+// 示例值：123456789
+func (builder *MeetingAgentEventMeetingQueryBuilder) MeetingNo(meetingNo string) *MeetingAgentEventMeetingQueryBuilder {
+	builder.meetingNo = meetingNo
+	builder.meetingNoSet = true
+	return builder
+}
+
+// 会议开始时间（unix时间，单位sec）
+//
+// 示例值：1712345678
+func (builder *MeetingAgentEventMeetingQueryBuilder) StartTime(startTime string) *MeetingAgentEventMeetingQueryBuilder {
+	builder.startTime = startTime
+	builder.startTimeSet = true
+	return builder
+}
+
+// 会议结束时间（unix时间，单位sec）
+//
+// 示例值：1712349278
+func (builder *MeetingAgentEventMeetingQueryBuilder) EndTime(endTime string) *MeetingAgentEventMeetingQueryBuilder {
+	builder.endTime = endTime
+	builder.endTimeSet = true
+	return builder
+}
+
+// 会议主持人
+//
+// 示例值：
+func (builder *MeetingAgentEventMeetingQueryBuilder) HostUser(hostUser *MeetingAgentEventUserQuery) *MeetingAgentEventMeetingQueryBuilder {
+	builder.hostUser = hostUser
+	builder.hostUserSet = true
+	return builder
+}
+
+func (builder *MeetingAgentEventMeetingQueryBuilder) Build() *MeetingAgentEventMeetingQuery {
+	req := &MeetingAgentEventMeetingQuery{}
+	if builder.idSet {
+		req.Id = &builder.id
+
+	}
+	if builder.topicSet {
+		req.Topic = &builder.topic
+
+	}
+	if builder.meetingNoSet {
+		req.MeetingNo = &builder.meetingNo
+
+	}
+	if builder.startTimeSet {
+		req.StartTime = &builder.startTime
+
+	}
+	if builder.endTimeSet {
+		req.EndTime = &builder.endTime
+
+	}
+	if builder.hostUserSet {
+		req.HostUser = builder.hostUser
+	}
+	return req
+}
+
 type MeetingAgentEventUser struct {
-	Id *string `json:"id,omitempty"` // 用户 ID
+	Id *UserId `json:"id,omitempty"` // 用户 ID
 
 	UserType *int `json:"user_type,omitempty"` // 用户类型
 
@@ -3256,7 +4394,7 @@ type MeetingAgentEventUser struct {
 }
 
 type MeetingAgentEventUserBuilder struct {
-	id    string // 用户 ID
+	id    *UserId // 用户 ID
 	idSet bool
 
 	userType    int // 用户类型
@@ -3276,8 +4414,8 @@ func NewMeetingAgentEventUserBuilder() *MeetingAgentEventUserBuilder {
 
 // 用户 ID
 //
-// 示例值：ou_3ec3f6a28a0d08c45d895276e8e5e19b
-func (builder *MeetingAgentEventUserBuilder) Id(id string) *MeetingAgentEventUserBuilder {
+// 示例值：
+func (builder *MeetingAgentEventUserBuilder) Id(id *UserId) *MeetingAgentEventUserBuilder {
 	builder.id = id
 	builder.idSet = true
 	return builder
@@ -3312,6 +4450,91 @@ func (builder *MeetingAgentEventUserBuilder) UserName(userName string) *MeetingA
 
 func (builder *MeetingAgentEventUserBuilder) Build() *MeetingAgentEventUser {
 	req := &MeetingAgentEventUser{}
+	if builder.idSet {
+		req.Id = builder.id
+	}
+	if builder.userTypeSet {
+		req.UserType = &builder.userType
+
+	}
+	if builder.userRoleSet {
+		req.UserRole = &builder.userRole
+
+	}
+	if builder.userNameSet {
+		req.UserName = &builder.userName
+
+	}
+	return req
+}
+
+type MeetingAgentEventUserQuery struct {
+	Id *string `json:"id,omitempty"` // 用户 ID
+
+	UserType *int `json:"user_type,omitempty"` // 用户类型
+
+	UserRole *int `json:"user_role,omitempty"` // 用户角色
+
+	UserName *string `json:"user_name,omitempty"` // 用户名称
+}
+
+type MeetingAgentEventUserQueryBuilder struct {
+	id    string // 用户 ID
+	idSet bool
+
+	userType    int // 用户类型
+	userTypeSet bool
+
+	userRole    int // 用户角色
+	userRoleSet bool
+
+	userName    string // 用户名称
+	userNameSet bool
+}
+
+func NewMeetingAgentEventUserQueryBuilder() *MeetingAgentEventUserQueryBuilder {
+	builder := &MeetingAgentEventUserQueryBuilder{}
+	return builder
+}
+
+// 用户 ID
+//
+// 示例值：ou_3ec3f6a28a0d08c45d895276e8e5e19b
+func (builder *MeetingAgentEventUserQueryBuilder) Id(id string) *MeetingAgentEventUserQueryBuilder {
+	builder.id = id
+	builder.idSet = true
+	return builder
+}
+
+// 用户类型
+//
+// 示例值：1
+func (builder *MeetingAgentEventUserQueryBuilder) UserType(userType int) *MeetingAgentEventUserQueryBuilder {
+	builder.userType = userType
+	builder.userTypeSet = true
+	return builder
+}
+
+// 用户角色
+//
+// 示例值：1
+func (builder *MeetingAgentEventUserQueryBuilder) UserRole(userRole int) *MeetingAgentEventUserQueryBuilder {
+	builder.userRole = userRole
+	builder.userRoleSet = true
+	return builder
+}
+
+// 用户名称
+//
+// 示例值：张三
+func (builder *MeetingAgentEventUserQueryBuilder) UserName(userName string) *MeetingAgentEventUserQueryBuilder {
+	builder.userName = userName
+	builder.userNameSet = true
+	return builder
+}
+
+func (builder *MeetingAgentEventUserQueryBuilder) Build() *MeetingAgentEventUserQuery {
+	req := &MeetingAgentEventUserQuery{}
 	if builder.idSet {
 		req.Id = &builder.id
 
@@ -8127,6 +9350,55 @@ func (builder *ParticipantJoinedItemBuilder) Build() *ParticipantJoinedItem {
 	return req
 }
 
+type ParticipantJoinedItemQuery struct {
+	Participant *MeetingAgentEventUserQuery `json:"participant,omitempty"` // 入会的参会人
+
+	JoinTime *string `json:"join_time,omitempty"` // 入会时间（毫秒级时间戳）
+}
+
+type ParticipantJoinedItemQueryBuilder struct {
+	participant    *MeetingAgentEventUserQuery // 入会的参会人
+	participantSet bool
+
+	joinTime    string // 入会时间（毫秒级时间戳）
+	joinTimeSet bool
+}
+
+func NewParticipantJoinedItemQueryBuilder() *ParticipantJoinedItemQueryBuilder {
+	builder := &ParticipantJoinedItemQueryBuilder{}
+	return builder
+}
+
+// 入会的参会人
+//
+// 示例值：
+func (builder *ParticipantJoinedItemQueryBuilder) Participant(participant *MeetingAgentEventUserQuery) *ParticipantJoinedItemQueryBuilder {
+	builder.participant = participant
+	builder.participantSet = true
+	return builder
+}
+
+// 入会时间（毫秒级时间戳）
+//
+// 示例值：1712345678000
+func (builder *ParticipantJoinedItemQueryBuilder) JoinTime(joinTime string) *ParticipantJoinedItemQueryBuilder {
+	builder.joinTime = joinTime
+	builder.joinTimeSet = true
+	return builder
+}
+
+func (builder *ParticipantJoinedItemQueryBuilder) Build() *ParticipantJoinedItemQuery {
+	req := &ParticipantJoinedItemQuery{}
+	if builder.participantSet {
+		req.Participant = builder.participant
+	}
+	if builder.joinTimeSet {
+		req.JoinTime = &builder.joinTime
+
+	}
+	return req
+}
+
 type ParticipantLeftItem struct {
 	Participant *MeetingAgentEventUser `json:"participant,omitempty"` // 邀请人
 
@@ -8180,6 +9452,73 @@ func (builder *ParticipantLeftItemBuilder) LeaveTime(leaveTime string) *Particip
 
 func (builder *ParticipantLeftItemBuilder) Build() *ParticipantLeftItem {
 	req := &ParticipantLeftItem{}
+	if builder.participantSet {
+		req.Participant = builder.participant
+	}
+	if builder.leaveReasonSet {
+		req.LeaveReason = &builder.leaveReason
+
+	}
+	if builder.leaveTimeSet {
+		req.LeaveTime = &builder.leaveTime
+
+	}
+	return req
+}
+
+type ParticipantLeftItemQuery struct {
+	Participant *MeetingAgentEventUserQuery `json:"participant,omitempty"` // 离会的参会人
+
+	LeaveReason *int `json:"leave_reason,omitempty"` // 离会原因
+
+	LeaveTime *string `json:"leave_time,omitempty"` // 离会时间（毫秒级时间戳）
+}
+
+type ParticipantLeftItemQueryBuilder struct {
+	participant    *MeetingAgentEventUserQuery // 离会的参会人
+	participantSet bool
+
+	leaveReason    int // 离会原因
+	leaveReasonSet bool
+
+	leaveTime    string // 离会时间（毫秒级时间戳）
+	leaveTimeSet bool
+}
+
+func NewParticipantLeftItemQueryBuilder() *ParticipantLeftItemQueryBuilder {
+	builder := &ParticipantLeftItemQueryBuilder{}
+	return builder
+}
+
+// 离会的参会人
+//
+// 示例值：
+func (builder *ParticipantLeftItemQueryBuilder) Participant(participant *MeetingAgentEventUserQuery) *ParticipantLeftItemQueryBuilder {
+	builder.participant = participant
+	builder.participantSet = true
+	return builder
+}
+
+// 离会原因
+//
+// 示例值：1
+func (builder *ParticipantLeftItemQueryBuilder) LeaveReason(leaveReason int) *ParticipantLeftItemQueryBuilder {
+	builder.leaveReason = leaveReason
+	builder.leaveReasonSet = true
+	return builder
+}
+
+// 离会时间（毫秒级时间戳）
+//
+// 示例值：1712349200000
+func (builder *ParticipantLeftItemQueryBuilder) LeaveTime(leaveTime string) *ParticipantLeftItemQueryBuilder {
+	builder.leaveTime = leaveTime
+	builder.leaveTimeSet = true
+	return builder
+}
+
+func (builder *ParticipantLeftItemQueryBuilder) Build() *ParticipantLeftItemQuery {
+	req := &ParticipantLeftItemQuery{}
 	if builder.participantSet {
 		req.Participant = builder.participant
 	}
@@ -9021,6 +10360,195 @@ func (builder *RecordingBuilder) Build() *Recording {
 	if builder.idSet {
 		req.Id = &builder.id
 
+	}
+	return req
+}
+
+type RecordingArtifact struct {
+	Type *int `json:"type,omitempty"` // 产物类型
+
+	ArtifactId *string `json:"artifact_id,omitempty"` // 产物 ID
+
+	Status *int `json:"status,omitempty"` // 产物状态
+
+	ArtifactToken *string `json:"artifact_token,omitempty"` // 产物 token
+}
+
+type RecordingArtifactBuilder struct {
+	type_    int // 产物类型
+	type_Set bool
+
+	artifactId    string // 产物 ID
+	artifactIdSet bool
+
+	status    int // 产物状态
+	statusSet bool
+
+	artifactToken    string // 产物 token
+	artifactTokenSet bool
+}
+
+func NewRecordingArtifactBuilder() *RecordingArtifactBuilder {
+	builder := &RecordingArtifactBuilder{}
+	return builder
+}
+
+// 产物类型
+//
+// 示例值：
+func (builder *RecordingArtifactBuilder) Type(type_ int) *RecordingArtifactBuilder {
+	builder.type_ = type_
+	builder.type_Set = true
+	return builder
+}
+
+// 产物 ID
+//
+// 示例值：7529416531681214468
+func (builder *RecordingArtifactBuilder) ArtifactId(artifactId string) *RecordingArtifactBuilder {
+	builder.artifactId = artifactId
+	builder.artifactIdSet = true
+	return builder
+}
+
+// 产物状态
+//
+// 示例值：
+func (builder *RecordingArtifactBuilder) Status(status int) *RecordingArtifactBuilder {
+	builder.status = status
+	builder.statusSet = true
+	return builder
+}
+
+// 产物 token
+//
+// 示例值：doccnR7VxK6mM2tQ9sL4pN8aBcD
+func (builder *RecordingArtifactBuilder) ArtifactToken(artifactToken string) *RecordingArtifactBuilder {
+	builder.artifactToken = artifactToken
+	builder.artifactTokenSet = true
+	return builder
+}
+
+func (builder *RecordingArtifactBuilder) Build() *RecordingArtifact {
+	req := &RecordingArtifact{}
+	if builder.type_Set {
+		req.Type = &builder.type_
+
+	}
+	if builder.artifactIdSet {
+		req.ArtifactId = &builder.artifactId
+
+	}
+	if builder.statusSet {
+		req.Status = &builder.status
+
+	}
+	if builder.artifactTokenSet {
+		req.ArtifactToken = &builder.artifactToken
+
+	}
+	return req
+}
+
+type RecordingListItem struct {
+	RecordingId *string `json:"recording_id,omitempty"` // 录音 ID
+
+	StartTimeMs *string `json:"start_time_ms,omitempty"` // 录音开始时间（Unix 时间，单位毫秒）
+
+	EndTimeMs *string `json:"end_time_ms,omitempty"` // 录音结束时间（Unix 时间，单位毫秒）
+
+	DurationMs *string `json:"duration_ms,omitempty"` // 录音时长（毫秒）
+
+	Artifacts []*RecordingArtifact `json:"artifacts,omitempty"` // 录音关联的妙记、纪要产物
+}
+
+type RecordingListItemBuilder struct {
+	recordingId    string // 录音 ID
+	recordingIdSet bool
+
+	startTimeMs    string // 录音开始时间（Unix 时间，单位毫秒）
+	startTimeMsSet bool
+
+	endTimeMs    string // 录音结束时间（Unix 时间，单位毫秒）
+	endTimeMsSet bool
+
+	durationMs    string // 录音时长（毫秒）
+	durationMsSet bool
+
+	artifacts    []*RecordingArtifact // 录音关联的妙记、纪要产物
+	artifactsSet bool
+}
+
+func NewRecordingListItemBuilder() *RecordingListItemBuilder {
+	builder := &RecordingListItemBuilder{}
+	return builder
+}
+
+// 录音 ID
+//
+// 示例值：7529416531681214468
+func (builder *RecordingListItemBuilder) RecordingId(recordingId string) *RecordingListItemBuilder {
+	builder.recordingId = recordingId
+	builder.recordingIdSet = true
+	return builder
+}
+
+// 录音开始时间（Unix 时间，单位毫秒）
+//
+// 示例值：1787730000000
+func (builder *RecordingListItemBuilder) StartTimeMs(startTimeMs string) *RecordingListItemBuilder {
+	builder.startTimeMs = startTimeMs
+	builder.startTimeMsSet = true
+	return builder
+}
+
+// 录音结束时间（Unix 时间，单位毫秒）
+//
+// 示例值：1787733600000
+func (builder *RecordingListItemBuilder) EndTimeMs(endTimeMs string) *RecordingListItemBuilder {
+	builder.endTimeMs = endTimeMs
+	builder.endTimeMsSet = true
+	return builder
+}
+
+// 录音时长（毫秒）
+//
+// 示例值：3600000
+func (builder *RecordingListItemBuilder) DurationMs(durationMs string) *RecordingListItemBuilder {
+	builder.durationMs = durationMs
+	builder.durationMsSet = true
+	return builder
+}
+
+// 录音关联的妙记、纪要产物
+//
+// 示例值：
+func (builder *RecordingListItemBuilder) Artifacts(artifacts []*RecordingArtifact) *RecordingListItemBuilder {
+	builder.artifacts = artifacts
+	builder.artifactsSet = true
+	return builder
+}
+
+func (builder *RecordingListItemBuilder) Build() *RecordingListItem {
+	req := &RecordingListItem{}
+	if builder.recordingIdSet {
+		req.RecordingId = &builder.recordingId
+
+	}
+	if builder.startTimeMsSet {
+		req.StartTimeMs = &builder.startTimeMs
+
+	}
+	if builder.endTimeMsSet {
+		req.EndTimeMs = &builder.endTimeMs
+
+	}
+	if builder.durationMsSet {
+		req.DurationMs = &builder.durationMs
+
+	}
+	if builder.artifactsSet {
+		req.Artifacts = builder.artifacts
 	}
 	return req
 }
@@ -12409,6 +13937,401 @@ func (builder *SubscribeUserEventBuilder) Build() *SubscribeUserEvent {
 	return req
 }
 
+type SubscriptionChatMessage struct {
+	Sender *SubscriptionUser `json:"sender,omitempty"` // 发送人
+
+	MessageId *string `json:"message_id,omitempty"` // 消息 ID
+
+	MessageType *string `json:"message_type,omitempty"` // 消息类型
+
+	Content *string `json:"content,omitempty"` // 消息内容
+
+	SendTime *string `json:"send_time,omitempty"` // 发送时间（毫秒级时间戳）
+}
+
+type SubscriptionChatMessageBuilder struct {
+	sender    *SubscriptionUser // 发送人
+	senderSet bool
+
+	messageId    string // 消息 ID
+	messageIdSet bool
+
+	messageType    string // 消息类型
+	messageTypeSet bool
+
+	content    string // 消息内容
+	contentSet bool
+
+	sendTime    string // 发送时间（毫秒级时间戳）
+	sendTimeSet bool
+}
+
+func NewSubscriptionChatMessageBuilder() *SubscriptionChatMessageBuilder {
+	builder := &SubscriptionChatMessageBuilder{}
+	return builder
+}
+
+// 发送人
+//
+// 示例值：
+func (builder *SubscriptionChatMessageBuilder) Sender(sender *SubscriptionUser) *SubscriptionChatMessageBuilder {
+	builder.sender = sender
+	builder.senderSet = true
+	return builder
+}
+
+// 消息 ID
+//
+// 示例值：m_1001
+func (builder *SubscriptionChatMessageBuilder) MessageId(messageId string) *SubscriptionChatMessageBuilder {
+	builder.messageId = messageId
+	builder.messageIdSet = true
+	return builder
+}
+
+// 消息类型
+//
+// 示例值：text
+func (builder *SubscriptionChatMessageBuilder) MessageType(messageType string) *SubscriptionChatMessageBuilder {
+	builder.messageType = messageType
+	builder.messageTypeSet = true
+	return builder
+}
+
+// 消息内容
+//
+// 示例值：你好
+func (builder *SubscriptionChatMessageBuilder) Content(content string) *SubscriptionChatMessageBuilder {
+	builder.content = content
+	builder.contentSet = true
+	return builder
+}
+
+// 发送时间（毫秒级时间戳）
+//
+// 示例值：1712345678000
+func (builder *SubscriptionChatMessageBuilder) SendTime(sendTime string) *SubscriptionChatMessageBuilder {
+	builder.sendTime = sendTime
+	builder.sendTimeSet = true
+	return builder
+}
+
+func (builder *SubscriptionChatMessageBuilder) Build() *SubscriptionChatMessage {
+	req := &SubscriptionChatMessage{}
+	if builder.senderSet {
+		req.Sender = builder.sender
+	}
+	if builder.messageIdSet {
+		req.MessageId = &builder.messageId
+
+	}
+	if builder.messageTypeSet {
+		req.MessageType = &builder.messageType
+
+	}
+	if builder.contentSet {
+		req.Content = &builder.content
+
+	}
+	if builder.sendTimeSet {
+		req.SendTime = &builder.sendTime
+
+	}
+	return req
+}
+
+type SubscriptionMeeting struct {
+	MeetingId *string `json:"meeting_id,omitempty"` // 会议ID
+
+	Topic *string `json:"topic,omitempty"` // 会议主题
+
+	MeetingNo *string `json:"meeting_no,omitempty"` // 9位会议号
+
+	MeetingSource *string `json:"meeting_source,omitempty"` // 会议创建源
+
+	CalendarEventId *string `json:"calendar_event_id,omitempty"` // 日程会议关联的日程实体id
+}
+
+type SubscriptionMeetingBuilder struct {
+	meetingId    string // 会议ID
+	meetingIdSet bool
+
+	topic    string // 会议主题
+	topicSet bool
+
+	meetingNo    string // 9位会议号
+	meetingNoSet bool
+
+	meetingSource    string // 会议创建源
+	meetingSourceSet bool
+
+	calendarEventId    string // 日程会议关联的日程实体id
+	calendarEventIdSet bool
+}
+
+func NewSubscriptionMeetingBuilder() *SubscriptionMeetingBuilder {
+	builder := &SubscriptionMeetingBuilder{}
+	return builder
+}
+
+// 会议ID
+//
+// 示例值：6911188411934433028
+func (builder *SubscriptionMeetingBuilder) MeetingId(meetingId string) *SubscriptionMeetingBuilder {
+	builder.meetingId = meetingId
+	builder.meetingIdSet = true
+	return builder
+}
+
+// 会议主题
+//
+// 示例值：my meeting
+func (builder *SubscriptionMeetingBuilder) Topic(topic string) *SubscriptionMeetingBuilder {
+	builder.topic = topic
+	builder.topicSet = true
+	return builder
+}
+
+// 9位会议号
+//
+// 示例值：235812466
+func (builder *SubscriptionMeetingBuilder) MeetingNo(meetingNo string) *SubscriptionMeetingBuilder {
+	builder.meetingNo = meetingNo
+	builder.meetingNoSet = true
+	return builder
+}
+
+// 会议创建源
+//
+// 示例值：calendar
+func (builder *SubscriptionMeetingBuilder) MeetingSource(meetingSource string) *SubscriptionMeetingBuilder {
+	builder.meetingSource = meetingSource
+	builder.meetingSourceSet = true
+	return builder
+}
+
+// 日程会议关联的日程实体id
+//
+// 示例值：efa67a98-06a8-4df5-8559-746c8f4477ef_0
+func (builder *SubscriptionMeetingBuilder) CalendarEventId(calendarEventId string) *SubscriptionMeetingBuilder {
+	builder.calendarEventId = calendarEventId
+	builder.calendarEventIdSet = true
+	return builder
+}
+
+func (builder *SubscriptionMeetingBuilder) Build() *SubscriptionMeeting {
+	req := &SubscriptionMeeting{}
+	if builder.meetingIdSet {
+		req.MeetingId = &builder.meetingId
+
+	}
+	if builder.topicSet {
+		req.Topic = &builder.topic
+
+	}
+	if builder.meetingNoSet {
+		req.MeetingNo = &builder.meetingNo
+
+	}
+	if builder.meetingSourceSet {
+		req.MeetingSource = &builder.meetingSource
+
+	}
+	if builder.calendarEventIdSet {
+		req.CalendarEventId = &builder.calendarEventId
+
+	}
+	return req
+}
+
+type SubscriptionSubtitle struct {
+	Speaker *SubscriptionUser `json:"speaker,omitempty"` // 发言人
+
+	Text *string `json:"text,omitempty"` // 字幕内容
+
+	Language *string `json:"language,omitempty"` // 字幕语言类型
+
+	StartTimeMs *string `json:"start_time_ms,omitempty"` // 句子开始时间（毫秒级时间戳）
+
+	EndTimeMs *string `json:"end_time_ms,omitempty"` // 句子结束时间（毫秒级时间戳）
+
+	SentenceId *string `json:"sentence_id,omitempty"` // 句子 ID（用于去重和排序）
+}
+
+type SubscriptionSubtitleBuilder struct {
+	speaker    *SubscriptionUser // 发言人
+	speakerSet bool
+
+	text    string // 字幕内容
+	textSet bool
+
+	language    string // 字幕语言类型
+	languageSet bool
+
+	startTimeMs    string // 句子开始时间（毫秒级时间戳）
+	startTimeMsSet bool
+
+	endTimeMs    string // 句子结束时间（毫秒级时间戳）
+	endTimeMsSet bool
+
+	sentenceId    string // 句子 ID（用于去重和排序）
+	sentenceIdSet bool
+}
+
+func NewSubscriptionSubtitleBuilder() *SubscriptionSubtitleBuilder {
+	builder := &SubscriptionSubtitleBuilder{}
+	return builder
+}
+
+// 发言人
+//
+// 示例值：
+func (builder *SubscriptionSubtitleBuilder) Speaker(speaker *SubscriptionUser) *SubscriptionSubtitleBuilder {
+	builder.speaker = speaker
+	builder.speakerSet = true
+	return builder
+}
+
+// 字幕内容
+//
+// 示例值：大家好，今天的会议主题是……
+func (builder *SubscriptionSubtitleBuilder) Text(text string) *SubscriptionSubtitleBuilder {
+	builder.text = text
+	builder.textSet = true
+	return builder
+}
+
+// 字幕语言类型
+//
+// 示例值：zh
+func (builder *SubscriptionSubtitleBuilder) Language(language string) *SubscriptionSubtitleBuilder {
+	builder.language = language
+	builder.languageSet = true
+	return builder
+}
+
+// 句子开始时间（毫秒级时间戳）
+//
+// 示例值：1712345678000
+func (builder *SubscriptionSubtitleBuilder) StartTimeMs(startTimeMs string) *SubscriptionSubtitleBuilder {
+	builder.startTimeMs = startTimeMs
+	builder.startTimeMsSet = true
+	return builder
+}
+
+// 句子结束时间（毫秒级时间戳）
+//
+// 示例值：1712345682000
+func (builder *SubscriptionSubtitleBuilder) EndTimeMs(endTimeMs string) *SubscriptionSubtitleBuilder {
+	builder.endTimeMs = endTimeMs
+	builder.endTimeMsSet = true
+	return builder
+}
+
+// 句子 ID（用于去重和排序）
+//
+// 示例值：1001
+func (builder *SubscriptionSubtitleBuilder) SentenceId(sentenceId string) *SubscriptionSubtitleBuilder {
+	builder.sentenceId = sentenceId
+	builder.sentenceIdSet = true
+	return builder
+}
+
+func (builder *SubscriptionSubtitleBuilder) Build() *SubscriptionSubtitle {
+	req := &SubscriptionSubtitle{}
+	if builder.speakerSet {
+		req.Speaker = builder.speaker
+	}
+	if builder.textSet {
+		req.Text = &builder.text
+
+	}
+	if builder.languageSet {
+		req.Language = &builder.language
+
+	}
+	if builder.startTimeMsSet {
+		req.StartTimeMs = &builder.startTimeMs
+
+	}
+	if builder.endTimeMsSet {
+		req.EndTimeMs = &builder.endTimeMs
+
+	}
+	if builder.sentenceIdSet {
+		req.SentenceId = &builder.sentenceId
+
+	}
+	return req
+}
+
+type SubscriptionUser struct {
+	Id *UserId `json:"id,omitempty"` // 用户ID
+
+	UserRole *string `json:"user_role,omitempty"` // 用户会中角色
+
+	UserName *string `json:"user_name,omitempty"` // 用户默认名称
+}
+
+type SubscriptionUserBuilder struct {
+	id    *UserId // 用户ID
+	idSet bool
+
+	userRole    string // 用户会中角色
+	userRoleSet bool
+
+	userName    string // 用户默认名称
+	userNameSet bool
+}
+
+func NewSubscriptionUserBuilder() *SubscriptionUserBuilder {
+	builder := &SubscriptionUserBuilder{}
+	return builder
+}
+
+// 用户ID
+//
+// 示例值：ou_3ec3f6a28a0d08c45d895276e8e5e19b
+func (builder *SubscriptionUserBuilder) Id(id *UserId) *SubscriptionUserBuilder {
+	builder.id = id
+	builder.idSet = true
+	return builder
+}
+
+// 用户会中角色
+//
+// 示例值：normal
+func (builder *SubscriptionUserBuilder) UserRole(userRole string) *SubscriptionUserBuilder {
+	builder.userRole = userRole
+	builder.userRoleSet = true
+	return builder
+}
+
+// 用户默认名称
+//
+// 示例值：张三
+func (builder *SubscriptionUserBuilder) UserName(userName string) *SubscriptionUserBuilder {
+	builder.userName = userName
+	builder.userNameSet = true
+	return builder
+}
+
+func (builder *SubscriptionUserBuilder) Build() *SubscriptionUser {
+	req := &SubscriptionUser{}
+	if builder.idSet {
+		req.Id = builder.id
+	}
+	if builder.userRoleSet {
+		req.UserRole = &builder.userRole
+
+	}
+	if builder.userNameSet {
+		req.UserName = &builder.userName
+
+	}
+	return req
+}
+
 type TimeConfig struct {
 	IfCoverChildScope *bool `json:"if_cover_child_scope,omitempty"` // 是否覆盖子层级及会议室
 
@@ -12694,6 +14617,127 @@ func (builder *TranscriptItemBuilder) SentenceId(sentenceId string) *TranscriptI
 
 func (builder *TranscriptItemBuilder) Build() *TranscriptItem {
 	req := &TranscriptItem{}
+	if builder.speakerSet {
+		req.Speaker = builder.speaker
+	}
+	if builder.textSet {
+		req.Text = &builder.text
+
+	}
+	if builder.languageSet {
+		req.Language = &builder.language
+
+	}
+	if builder.startTimeMsSet {
+		req.StartTimeMs = &builder.startTimeMs
+
+	}
+	if builder.endTimeMsSet {
+		req.EndTimeMs = &builder.endTimeMs
+
+	}
+	if builder.sentenceIdSet {
+		req.SentenceId = &builder.sentenceId
+
+	}
+	return req
+}
+
+type TranscriptItemQuery struct {
+	Speaker *MeetingAgentEventUserQuery `json:"speaker,omitempty"` // 发言人
+
+	Text *string `json:"text,omitempty"` // 字幕文本
+
+	Language *string `json:"language,omitempty"` // 语言类型
+
+	StartTimeMs *string `json:"start_time_ms,omitempty"` // 句子开始时间（毫秒级时间戳）
+
+	EndTimeMs *string `json:"end_time_ms,omitempty"` // 句子结束时间（毫秒级时间戳）
+
+	SentenceId *string `json:"sentence_id,omitempty"` // 句子 ID（用于去重和排序）
+}
+
+type TranscriptItemQueryBuilder struct {
+	speaker    *MeetingAgentEventUserQuery // 发言人
+	speakerSet bool
+
+	text    string // 字幕文本
+	textSet bool
+
+	language    string // 语言类型
+	languageSet bool
+
+	startTimeMs    string // 句子开始时间（毫秒级时间戳）
+	startTimeMsSet bool
+
+	endTimeMs    string // 句子结束时间（毫秒级时间戳）
+	endTimeMsSet bool
+
+	sentenceId    string // 句子 ID（用于去重和排序）
+	sentenceIdSet bool
+}
+
+func NewTranscriptItemQueryBuilder() *TranscriptItemQueryBuilder {
+	builder := &TranscriptItemQueryBuilder{}
+	return builder
+}
+
+// 发言人
+//
+// 示例值：
+func (builder *TranscriptItemQueryBuilder) Speaker(speaker *MeetingAgentEventUserQuery) *TranscriptItemQueryBuilder {
+	builder.speaker = speaker
+	builder.speakerSet = true
+	return builder
+}
+
+// 字幕文本
+//
+// 示例值：大家好，今天的会议主题是……
+func (builder *TranscriptItemQueryBuilder) Text(text string) *TranscriptItemQueryBuilder {
+	builder.text = text
+	builder.textSet = true
+	return builder
+}
+
+// 语言类型
+//
+// 示例值：zh
+func (builder *TranscriptItemQueryBuilder) Language(language string) *TranscriptItemQueryBuilder {
+	builder.language = language
+	builder.languageSet = true
+	return builder
+}
+
+// 句子开始时间（毫秒级时间戳）
+//
+// 示例值：1712345678000
+func (builder *TranscriptItemQueryBuilder) StartTimeMs(startTimeMs string) *TranscriptItemQueryBuilder {
+	builder.startTimeMs = startTimeMs
+	builder.startTimeMsSet = true
+	return builder
+}
+
+// 句子结束时间（毫秒级时间戳）
+//
+// 示例值：1712345682000
+func (builder *TranscriptItemQueryBuilder) EndTimeMs(endTimeMs string) *TranscriptItemQueryBuilder {
+	builder.endTimeMs = endTimeMs
+	builder.endTimeMsSet = true
+	return builder
+}
+
+// 句子 ID（用于去重和排序）
+//
+// 示例值：1001
+func (builder *TranscriptItemQueryBuilder) SentenceId(sentenceId string) *TranscriptItemQueryBuilder {
+	builder.sentenceId = sentenceId
+	builder.sentenceIdSet = true
+	return builder
+}
+
+func (builder *TranscriptItemQueryBuilder) Build() *TranscriptItemQuery {
+	req := &TranscriptItemQuery{}
 	if builder.speakerSet {
 		req.Speaker = builder.speaker
 	}
@@ -13145,7 +15189,7 @@ func (builder *UserActiveMeetingInfoBuilder) MeetingNo(meetingNo string) *UserAc
 
 // 会议ID
 //
-// 示例值：mt_123e4567-e89b-12d3-a456-426614174000
+// 示例值：7628568141510692381
 func (builder *UserActiveMeetingInfoBuilder) MeetingId(meetingId string) *UserActiveMeetingInfoBuilder {
 	builder.meetingId = meetingId
 	builder.meetingIdSet = true
@@ -13340,6 +15384,229 @@ func (resp *ListAlertResp) Success() bool {
 	return resp.Code == 0
 }
 
+type CountdownBotReqBodyBuilder struct {
+	meetingId    string // 会议唯一标识，必须传入长数字 meeting_id，不是 9 位会议号。可通过创建会议接口或会议列表查询接口获取。;
+	meetingIdSet bool
+
+	action    string // 倒计时操作类型。可选值：set、prolong、end_in_advance、close_window。set 表示设置倒计时，prolong 表示延长倒计时，end_in_advance 表示提前结束，close_window 表示关闭会中倒计时窗口。
+	actionSet bool
+
+	duration    string // 倒计时时长，单位为分钟。action 为 set 或 prolong 时必填；set 时超过 24 小时会报错，prolong 时超过 24 小时会按 24 小时处理。
+	durationSet bool
+
+	needPlayAudioAtEnd    bool // 倒计时结束时是否播放提示音。仅 action=set 时生效。默认为false。
+	needPlayAudioAtEndSet bool
+
+	reminderBeforeEnd    string // 倒计时结束前的提醒时间，单位为分钟。仅 action=set 时生效；只支持设置一次提醒，且必须大于 0 并小于 duration。
+	reminderBeforeEndSet bool
+}
+
+func NewCountdownBotReqBodyBuilder() *CountdownBotReqBodyBuilder {
+	builder := &CountdownBotReqBodyBuilder{}
+	return builder
+}
+
+// 会议唯一标识，必须传入长数字 meeting_id，不是 9 位会议号。可通过创建会议接口或会议列表查询接口获取。;
+//
+// 示例值：7628568141510692381
+func (builder *CountdownBotReqBodyBuilder) MeetingId(meetingId string) *CountdownBotReqBodyBuilder {
+	builder.meetingId = meetingId
+	builder.meetingIdSet = true
+	return builder
+}
+
+// 倒计时操作类型。可选值：set、prolong、end_in_advance、close_window。set 表示设置倒计时，prolong 表示延长倒计时，end_in_advance 表示提前结束，close_window 表示关闭会中倒计时窗口。
+//
+// 示例值：set
+func (builder *CountdownBotReqBodyBuilder) Action(action string) *CountdownBotReqBodyBuilder {
+	builder.action = action
+	builder.actionSet = true
+	return builder
+}
+
+// 倒计时时长，单位为分钟。action 为 set 或 prolong 时必填；set 时超过 24 小时会报错，prolong 时超过 24 小时会按 24 小时处理。
+//
+// 示例值：10
+func (builder *CountdownBotReqBodyBuilder) Duration(duration string) *CountdownBotReqBodyBuilder {
+	builder.duration = duration
+	builder.durationSet = true
+	return builder
+}
+
+// 倒计时结束时是否播放提示音。仅 action=set 时生效。默认为false。
+//
+// 示例值：false
+func (builder *CountdownBotReqBodyBuilder) NeedPlayAudioAtEnd(needPlayAudioAtEnd bool) *CountdownBotReqBodyBuilder {
+	builder.needPlayAudioAtEnd = needPlayAudioAtEnd
+	builder.needPlayAudioAtEndSet = true
+	return builder
+}
+
+// 倒计时结束前的提醒时间，单位为分钟。仅 action=set 时生效；只支持设置一次提醒，且必须大于 0 并小于 duration。
+//
+// 示例值：1
+func (builder *CountdownBotReqBodyBuilder) ReminderBeforeEnd(reminderBeforeEnd string) *CountdownBotReqBodyBuilder {
+	builder.reminderBeforeEnd = reminderBeforeEnd
+	builder.reminderBeforeEndSet = true
+	return builder
+}
+
+func (builder *CountdownBotReqBodyBuilder) Build() *CountdownBotReqBody {
+	req := &CountdownBotReqBody{}
+	if builder.meetingIdSet {
+		req.MeetingId = &builder.meetingId
+	}
+	if builder.actionSet {
+		req.Action = &builder.action
+	}
+	if builder.durationSet {
+		req.Duration = &builder.duration
+	}
+	if builder.needPlayAudioAtEndSet {
+		req.NeedPlayAudioAtEnd = &builder.needPlayAudioAtEnd
+	}
+	if builder.reminderBeforeEndSet {
+		req.ReminderBeforeEnd = &builder.reminderBeforeEnd
+	}
+	return req
+}
+
+type CountdownBotPathReqBodyBuilder struct {
+	meetingId             string
+	meetingIdSet          bool
+	action                string
+	actionSet             bool
+	duration              string
+	durationSet           bool
+	needPlayAudioAtEnd    bool
+	needPlayAudioAtEndSet bool
+	reminderBeforeEnd     string
+	reminderBeforeEndSet  bool
+}
+
+func NewCountdownBotPathReqBodyBuilder() *CountdownBotPathReqBodyBuilder {
+	builder := &CountdownBotPathReqBodyBuilder{}
+	return builder
+}
+
+// 会议唯一标识，必须传入长数字 meeting_id，不是 9 位会议号。可通过创建会议接口或会议列表查询接口获取。;
+//
+// 示例值：7628568141510692381
+func (builder *CountdownBotPathReqBodyBuilder) MeetingId(meetingId string) *CountdownBotPathReqBodyBuilder {
+	builder.meetingId = meetingId
+	builder.meetingIdSet = true
+	return builder
+}
+
+// 倒计时操作类型。可选值：set、prolong、end_in_advance、close_window。set 表示设置倒计时，prolong 表示延长倒计时，end_in_advance 表示提前结束，close_window 表示关闭会中倒计时窗口。
+//
+// 示例值：set
+func (builder *CountdownBotPathReqBodyBuilder) Action(action string) *CountdownBotPathReqBodyBuilder {
+	builder.action = action
+	builder.actionSet = true
+	return builder
+}
+
+// 倒计时时长，单位为分钟。action 为 set 或 prolong 时必填；set 时超过 24 小时会报错，prolong 时超过 24 小时会按 24 小时处理。
+//
+// 示例值：10
+func (builder *CountdownBotPathReqBodyBuilder) Duration(duration string) *CountdownBotPathReqBodyBuilder {
+	builder.duration = duration
+	builder.durationSet = true
+	return builder
+}
+
+// 倒计时结束时是否播放提示音。仅 action=set 时生效。默认为false。
+//
+// 示例值：false
+func (builder *CountdownBotPathReqBodyBuilder) NeedPlayAudioAtEnd(needPlayAudioAtEnd bool) *CountdownBotPathReqBodyBuilder {
+	builder.needPlayAudioAtEnd = needPlayAudioAtEnd
+	builder.needPlayAudioAtEndSet = true
+	return builder
+}
+
+// 倒计时结束前的提醒时间，单位为分钟。仅 action=set 时生效；只支持设置一次提醒，且必须大于 0 并小于 duration。
+//
+// 示例值：1
+func (builder *CountdownBotPathReqBodyBuilder) ReminderBeforeEnd(reminderBeforeEnd string) *CountdownBotPathReqBodyBuilder {
+	builder.reminderBeforeEnd = reminderBeforeEnd
+	builder.reminderBeforeEndSet = true
+	return builder
+}
+
+func (builder *CountdownBotPathReqBodyBuilder) Build() (*CountdownBotReqBody, error) {
+	req := &CountdownBotReqBody{}
+	if builder.meetingIdSet {
+		req.MeetingId = &builder.meetingId
+	}
+	if builder.actionSet {
+		req.Action = &builder.action
+	}
+	if builder.durationSet {
+		req.Duration = &builder.duration
+	}
+	if builder.needPlayAudioAtEndSet {
+		req.NeedPlayAudioAtEnd = &builder.needPlayAudioAtEnd
+	}
+	if builder.reminderBeforeEndSet {
+		req.ReminderBeforeEnd = &builder.reminderBeforeEnd
+	}
+	return req, nil
+}
+
+type CountdownBotReqBuilder struct {
+	apiReq *larkcore.ApiReq
+	body   *CountdownBotReqBody
+}
+
+func NewCountdownBotReqBuilder() *CountdownBotReqBuilder {
+	builder := &CountdownBotReqBuilder{}
+	builder.apiReq = &larkcore.ApiReq{
+		PathParams:  larkcore.PathParams{},
+		QueryParams: larkcore.QueryParams{},
+	}
+	return builder
+}
+
+// 该接口用于会中操作倒计时，支持自定义时长、设置/延长/提前结束倒计时、关闭倒计时窗口。适用于会议控场场景
+func (builder *CountdownBotReqBuilder) Body(body *CountdownBotReqBody) *CountdownBotReqBuilder {
+	builder.body = body
+	return builder
+}
+
+func (builder *CountdownBotReqBuilder) Build() *CountdownBotReq {
+	req := &CountdownBotReq{}
+	req.apiReq = &larkcore.ApiReq{}
+	req.apiReq.Body = builder.body
+	return req
+}
+
+type CountdownBotReqBody struct {
+	MeetingId *string `json:"meeting_id,omitempty"` // 会议唯一标识，必须传入长数字 meeting_id，不是 9 位会议号。可通过创建会议接口或会议列表查询接口获取。;
+
+	Action *string `json:"action,omitempty"` // 倒计时操作类型。可选值：set、prolong、end_in_advance、close_window。set 表示设置倒计时，prolong 表示延长倒计时，end_in_advance 表示提前结束，close_window 表示关闭会中倒计时窗口。
+
+	Duration *string `json:"duration,omitempty"` // 倒计时时长，单位为分钟。action 为 set 或 prolong 时必填；set 时超过 24 小时会报错，prolong 时超过 24 小时会按 24 小时处理。
+
+	NeedPlayAudioAtEnd *bool `json:"need_play_audio_at_end,omitempty"` // 倒计时结束时是否播放提示音。仅 action=set 时生效。默认为false。
+
+	ReminderBeforeEnd *string `json:"reminder_before_end,omitempty"` // 倒计时结束前的提醒时间，单位为分钟。仅 action=set 时生效；只支持设置一次提醒，且必须大于 0 并小于 duration。
+}
+
+type CountdownBotReq struct {
+	apiReq *larkcore.ApiReq
+	Body   *CountdownBotReqBody `body:""`
+}
+
+type CountdownBotResp struct {
+	*larkcore.ApiResp `json:"-"`
+	larkcore.CodeError
+}
+
+func (resp *CountdownBotResp) Success() bool {
+	return resp.Code == 0
+}
+
 type EventsBotReqBuilder struct {
 	apiReq *larkcore.ApiReq
 	limit  int // 最大返回多少记录，当使用迭代器访问时才有效
@@ -13452,6 +15719,9 @@ type JoinBotReqBodyBuilder struct {
 
 	callId    string // 邀请-入会链路的关联标识。从[邀请机器人入会](https://open.feishu.cn/document/server-docs/vc-v1/supportEventsList/meeting_invited)事件获取；仅在响应邀请入会时原样回传。未传入时按普通入会链路处理，不进行邀请关联。
 	callIdSet bool
+
+	action    int // 机器人入会动作。不传或传 1 表示仅加入已存在会议；传 2 表示发起并加入日程会议。仅支持日程 VC 会议，非日程会议不支持发起。;
+	actionSet bool
 }
 
 func NewJoinBotReqBodyBuilder() *JoinBotReqBodyBuilder {
@@ -13495,6 +15765,15 @@ func (builder *JoinBotReqBodyBuilder) CallId(callId string) *JoinBotReqBodyBuild
 	return builder
 }
 
+// 机器人入会动作。不传或传 1 表示仅加入已存在会议；传 2 表示发起并加入日程会议。仅支持日程 VC 会议，非日程会议不支持发起。;
+//
+// 示例值：
+func (builder *JoinBotReqBodyBuilder) Action(action int) *JoinBotReqBodyBuilder {
+	builder.action = action
+	builder.actionSet = true
+	return builder
+}
+
 func (builder *JoinBotReqBodyBuilder) Build() *JoinBotReqBody {
 	req := &JoinBotReqBody{}
 	if builder.joinTypeSet {
@@ -13509,6 +15788,9 @@ func (builder *JoinBotReqBodyBuilder) Build() *JoinBotReqBody {
 	if builder.callIdSet {
 		req.CallId = &builder.callId
 	}
+	if builder.actionSet {
+		req.Action = &builder.action
+	}
 	return req
 }
 
@@ -13521,6 +15803,8 @@ type JoinBotPathReqBodyBuilder struct {
 	passwordSet     bool
 	callId          string
 	callIdSet       bool
+	action          int
+	actionSet       bool
 }
 
 func NewJoinBotPathReqBodyBuilder() *JoinBotPathReqBodyBuilder {
@@ -13564,6 +15848,15 @@ func (builder *JoinBotPathReqBodyBuilder) CallId(callId string) *JoinBotPathReqB
 	return builder
 }
 
+// 机器人入会动作。不传或传 1 表示仅加入已存在会议；传 2 表示发起并加入日程会议。仅支持日程 VC 会议，非日程会议不支持发起。;
+//
+// 示例值：
+func (builder *JoinBotPathReqBodyBuilder) Action(action int) *JoinBotPathReqBodyBuilder {
+	builder.action = action
+	builder.actionSet = true
+	return builder
+}
+
 func (builder *JoinBotPathReqBodyBuilder) Build() (*JoinBotReqBody, error) {
 	req := &JoinBotReqBody{}
 	if builder.joinTypeSet {
@@ -13577,6 +15870,9 @@ func (builder *JoinBotPathReqBodyBuilder) Build() (*JoinBotReqBody, error) {
 	}
 	if builder.callIdSet {
 		req.CallId = &builder.callId
+	}
+	if builder.actionSet {
+		req.Action = &builder.action
 	}
 	return req, nil
 }
@@ -13595,7 +15891,7 @@ func NewJoinBotReqBuilder() *JoinBotReqBuilder {
 	return builder
 }
 
-// 通过会议号将机器人加入指定的视频会议。调用成功后会返回会议 ID，该 ID 可用于后续的机器人离会、发送会中消息等操作。
+// 通过会议号将机器人加入指定的视频会议。调用成功后会返回会议 ID，该 ID 可用于后续的[离开会议](https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/reference/vc-v1/bot/leave)、[发送会中消息](https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/reference/vc-v1/bot/message)等操作。
 func (builder *JoinBotReqBuilder) Body(body *JoinBotReqBody) *JoinBotReqBuilder {
 	builder.body = body
 	return builder
@@ -13616,6 +15912,8 @@ type JoinBotReqBody struct {
 	Password *string `json:"password,omitempty"` // 会议密码。目标会议未设置密码时无需传入；若会议设置了密码，未传入或传入错误密码将无法入会。可通过会议创建接口或会议详情查询接口获取。
 
 	CallId *string `json:"call_id,omitempty"` // 邀请-入会链路的关联标识。从[邀请机器人入会](https://open.feishu.cn/document/server-docs/vc-v1/supportEventsList/meeting_invited)事件获取；仅在响应邀请入会时原样回传。未传入时按普通入会链路处理，不进行邀请关联。
+
+	Action *int `json:"action,omitempty"` // 机器人入会动作。不传或传 1 表示仅加入已存在会议；传 2 表示发起并加入日程会议。仅支持日程 VC 会议，非日程会议不支持发起。;
 }
 
 type JoinBotReq struct {
