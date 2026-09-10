@@ -152,9 +152,35 @@ func (a *alert) ListByIterator(ctx context.Context, req *ListAlertReq, options .
 		limit:    req.Limit}, nil
 }
 
+// Countdown 操作会议倒计时
+//
+// - 该接口用于会中操作倒计时，支持自定义时长、设置/延长/提前结束倒计时、关闭倒计时窗口。适用于会议控场场景
+//
+// - 官网API文档链接:https://open.feishu.cn/api-explorer?from=op_doc_tab&apiName=countdown&project=vc&resource=bot&version=v1
+//
+// - 使用Demo链接:https://github.com/larksuite/oapi-sdk-go/tree/v3_main/sample/apiall/vcv1/countdown_bot.go
+func (b *bot) Countdown(ctx context.Context, req *CountdownBotReq, options ...larkcore.RequestOptionFunc) (*CountdownBotResp, error) {
+	// 发起请求
+	apiReq := req.apiReq
+	apiReq.ApiPath = "/open-apis/vc/v1/bots/countdown"
+	apiReq.HttpMethod = http.MethodPost
+	apiReq.SupportedAccessTokenTypes = []larkcore.AccessTokenType{larkcore.AccessTokenTypeUser, larkcore.AccessTokenTypeTenant}
+	apiResp, err := larkcore.Request(ctx, apiReq, b.config, options...)
+	if err != nil {
+		return nil, err
+	}
+	// 反序列响应结果
+	resp := &CountdownBotResp{ApiResp: apiResp}
+	err = apiResp.JSONUnmarshalBody(resp, b.config)
+	if err != nil {
+		return nil, err
+	}
+	return resp, err
+}
+
 // Events 获取会议事件列表
 //
-// - 获取会议中的事件列表，包括参会人加入或离开、发言、聊天、共享等事件
+// - 获取会议中的事件列表，包括参会人加入或离开、发言、聊天、共享等事件。调用前请根据鉴权身份完成准备：使用 user_access_token 时，授权用户需已在目标会议中，并通过[获取用户活跃会议列表](https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/reference/vc-v1/bot/user_active_meeting)获取 meeting_id；使用 tenant_access_token 时，应用 Bot 需先通过[加入会议](https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/reference/vc-v1/bot/join)接口进入目标会议，并使用入会接口返回的 meeting_id。
 //
 // - 当前能力处于灰度开放阶段，暂未全量开放。如需申请开通或确认可用范围，请联系[技术支持](https://applink.feishu.cn/TLJpeNdW)
 //
@@ -190,7 +216,7 @@ func (b *bot) EventsByIterator(ctx context.Context, req *EventsBotReq, options .
 
 // Join 加入会议
 //
-// - 通过会议号将机器人加入指定的视频会议。调用成功后会返回会议 ID，该 ID 可用于后续的机器人离会、发送会中消息等操作。
+// - 通过会议号将机器人加入指定的视频会议。调用成功后会返回会议 ID，该 ID 可用于后续的[离开会议](https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/reference/vc-v1/bot/leave)、[发送会中消息](https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/reference/vc-v1/bot/message)等操作。
 //
 // - 官网API文档链接:https://open.feishu.cn/api-explorer?from=op_doc_tab&apiName=join&project=vc&resource=bot&version=v1
 //
@@ -618,7 +644,7 @@ func (m *meeting) Search(ctx context.Context, req *SearchMeetingReq, options ...
 	apiReq := req.apiReq
 	apiReq.ApiPath = "/open-apis/vc/v1/meetings/search"
 	apiReq.HttpMethod = http.MethodPost
-	apiReq.SupportedAccessTokenTypes = []larkcore.AccessTokenType{larkcore.AccessTokenTypeUser}
+	apiReq.SupportedAccessTokenTypes = []larkcore.AccessTokenType{larkcore.AccessTokenTypeUser, larkcore.AccessTokenTypeTenant}
 	apiResp, err := larkcore.Request(ctx, apiReq, m.config, options...)
 	if err != nil {
 		return nil, err
